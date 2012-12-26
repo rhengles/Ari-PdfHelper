@@ -16,6 +16,7 @@ Sample Usage
 	use ZendPdf\Page;
 	use ZendPdf\Font;
 	use ZendPdf\Color\GrayScale;
+	use Ari\PdfHelper\Paragraph;
 
 	$pdf = new PdfDocument();
 
