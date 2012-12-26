@@ -41,7 +41,7 @@ class LinesBreakChar
 		foreach ( $this->breakChars as $c ) {
 			$pos = strrpos( $text, $c );
 			if ( $pos === false ) continue;
-			if ( empty( $nearest ) || $nearest['pos'] > $pos ) {
+			if ( empty( $nearest ) || $pos > $nearest['pos'] ) {
 				$nearest = array(
 					'char' => $c,
 					'pos' => $pos + ( $c === ' ' ? 0 : 1 ),
