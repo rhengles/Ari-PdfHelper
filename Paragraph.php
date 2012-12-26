@@ -11,10 +11,13 @@ class Paragraph
 	protected $page;
 	protected $font;
 	protected $size;
+	protected $width;
 	protected $breakChars;
 	protected $debug = false;
 
 	protected $lines;
+	protected $lineCount = 0;
+	protected $height;
 
 	public function __construct( $page = null, $font = null, $size = null, $line = null )
 	{
@@ -73,7 +76,7 @@ class Paragraph
 		return $this;
 	}
 
-	public function breakLines( $text, $width )
+	public function prepare( $text, $width )
 	{
 		$lb = new LinesBreaker();
 
@@ -86,6 +89,10 @@ class Paragraph
 		$lb->breakText( $text );
 
 		$this->linesBreaker = $lb;
+		$this->lineCount = $lb->getLineCount();
+		$this->width = $width;
+		$this->height = null;
+		
 		return $this;
 	}
 
@@ -100,17 +107,37 @@ class Paragraph
 		return $this->linesBreaker->getLines();
 	}
 
+	public function getLineCount()
+	{
+		return $this->lineCount;
+	}
+
 	public function getLinesDebug()
 	{
 		return $this->linesBreaker->getDebugText();
 	}
 
-	public function render( $text, $x, $y, $width, $charset = 'UTF-8' )
+	public function getHeight()
 	{
-		$this->breakLines( $text, $width );
+		if ( empty( $this->lineCount ) ) return 0;
+		if ( empty( $this->height ) ) {
+			$this->height = $this->lineCount *
+				( $this->size + $this->lineSpace );
+		}
+		return $this->height;
+	}
+
+	public function draw( $text, $x, $y, $width, $charset = null )
+	{
+		$this->prepare( $text, $width );
+		return $this->render( $x, $y, $charset );
+	}
+
+	public function render( $x, $y, $charset = 'UTF-8' )
+	{
 		$page = $this->page;
 		$page->setFont( $this->font, $this->size );
-		$debugX = $x + $width + 4;
+		$debugX = $x + $this->width + 4;
 
 		$lines = $this->getLines();
 		foreach ( $lines as $line ) {
@@ -122,12 +149,12 @@ class Paragraph
 		}
 		if ( $this->debug ) {
 			$page->drawText( $this->getLinesDebug(), $debugX, $y, $charset );
-			//$cinza = new GrayScale( 0.8 );
 			$page->setLineColor( $this->debugLineColor );
-			$x += $width + 2;
+			$x += $this->width + 2;
 			$y += $this->size;
-			$page->drawLine( $x, $y + count( $lines ) * ( $this->size + $this->lineSpace ), $x, $y );
+			$page->drawLine( $x, $y + $this->getHeight(), $x, $y );
 		}
+		return $this;
 	}
 
 	public function debug( $text, $width )

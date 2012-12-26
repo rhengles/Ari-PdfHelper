@@ -24,11 +24,13 @@ Sample Usage
 	$font = Font::fontWithName(Font::FONT_HELVETICA);
 	$gray = new GrayScale( 0.8 );
 
-	$para = new Paragraph( $page, $font, 8 /* font size */, 2 /* line spacing */ );
+	$para = new Paragraph( $page, $font,
+		8 /* font size */,
+		2 /* line spacing */ );
 	$para->setDebug( true );
 	$para->setDebugLineColor( $gray );
 
-	$para->render( $reallyLongText,
+	$para->draw( $reallyLongText,
 		20  /* x position */,
 		780 /* y position */,
 		240 /* paragraph width */ );

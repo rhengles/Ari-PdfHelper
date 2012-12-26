@@ -58,6 +58,11 @@ class LinesBreaker
 		return $this->lines;
 	}
 
+	public function getLineCount()
+	{
+		return count($this->lines);
+	}
+
 	public function getDebugText()
 	{
 		return 'Score '.$this->score.' Avg '.number_format( $this->score / count( $this->lines ), 4 );
