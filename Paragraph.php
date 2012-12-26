@@ -130,4 +130,16 @@ class Paragraph
 		}
 	}
 
+	public function debug( $text, $width )
+	{
+		$this->breakLines( $text, $width );
+		$text = '';
+		$lines = $this->getLines();
+		foreach ( $lines as $line ) {
+			$text .= $line->text.' | '.$line->getDebugText()."\r\n";
+		}
+		$text .= $this->getLinesDebug();
+		return $text;
+	}
+
 }
