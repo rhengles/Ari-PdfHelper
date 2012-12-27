@@ -159,7 +159,7 @@ class Paragraph
 
 	public function debug( $text, $width )
 	{
-		$this->breakLines( $text, $width );
+		$this->prepare( $text, $width );
 		$text = '';
 		$lines = $this->getLines();
 		foreach ( $lines as $line ) {
