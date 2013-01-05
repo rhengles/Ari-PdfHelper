@@ -7,15 +7,23 @@ use Ari\PdfHelper\MeasureTextResult;
 class MeasureTextCounts
 {
 
-	protected $width;
 	protected $text;
-	protected $charset;
+	protected $width;
+
 	protected $measure;
+	protected $strFn;
+
 	protected $counts = array();
 
 	public function __construct( $width = null )
 	{
 		if ( isset( $width ) ) $this->setWidth( $width );
+	}
+
+	public function setText( $text )
+	{
+		$this->text = $text;
+		return $this;
 	}
 
 	public function setWidth( $width )
@@ -24,22 +32,15 @@ class MeasureTextCounts
 		return $this;
 	}
 
-	public function setText( $text, $charset )
+	public function setMeasure( MeasureText $ms )
 	{
-		$this->text = $text;
-		$this->charset = $charset;
+		$this->measure = $ms;
 		return $this;
 	}
 
-	public function setCharset( $charset )
+	public function setStringFn( String\IStringFn $strFn )
 	{
-		$this->charset = $charset;
-		return $this;
-	}
-
-	public function setMeasure( $measure )
-	{
-		$this->measure = $measure;
+		$this->strFn = $strFn;
 		return $this;
 	}
 
@@ -59,7 +60,7 @@ class MeasureTextCounts
 
 	public function measure( $length )
 	{
-		$textWidth = $this->measureText( mb_substr( $this->text, 0, $length, $this->charset ) );
+		$textWidth = $this->measureText( $this->strFn->substr( $this->text, 0, $length ) );
 		$result = $this->makeResult( $length, $textWidth, $this->width - $textWidth );
 		$this->counts[ $length ] = $result;
 		return $result;

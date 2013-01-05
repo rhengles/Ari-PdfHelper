@@ -9,44 +9,40 @@ class Paragraph
 {
 
 	protected $page;
-	protected $font;
-	protected $size;
 	protected $width;
-	protected $breakChars;
-	protected $debug = false;
 
 	protected $lines;
 	protected $lineCount = 0;
+	protected $size;
 	protected $height;
 
-	public function __construct( $page = null, $font = null, $size = null, $line = null )
+	protected $measure;
+	protected $strFn;
+	protected $breakChars;
+	protected $debug = false;
+
+	public function __construct( $page = null, $line = null )
 	{
+		$this->setDefaults();
 		if ( isset( $page ) ) $this->setPage( $page );
-		if ( isset( $font ) ) $this->setFont( $font );
-		if ( isset( $size ) ) $this->setSize( $size );
 		if ( isset( $line ) ) $this->setLineSpace( $line );
-		$this->setDefaultBreakChars();
 	}
 
-	public function setPage( $page )
+	public function setDefaults()
 	{
-		$this->page = $page;
+		return $this
+			->setDefaultMeasure()
+			->setDefaultStringFn()
+			->setDefaultBreakChars();
+	}
+
+	public function setDebug( $debug )
+	{
+		$this->debug = $debug;
 		return $this;
 	}
 
-	public function setFont( $font )
-	{
-		$this->font = $font;
-		return $this;
-	}
-
-	public function setSize( $size )
-	{
-		$this->size = $size;
-		return $this;
-	}
-
-	public function setBreakChars( $bc )
+	public function setBreakChars( LinesBreakChar $bc )
 	{
 		$this->breakChars = $bc;
 		return $this;
@@ -54,13 +50,49 @@ class Paragraph
 
 	public function setDefaultBreakChars()
 	{
-		$this->breakChars = new LinesBreakChar();
+		return $this
+			->setBreakChars( new LinesBreakChar() );
+	}
+
+	public function setStringFn( String\IStringFn $strFn )
+	{
+		$this->strFn = $strFn;
 		return $this;
 	}
 
-	public function setDebug( $debug )
+	public function setStringFnByte( $charset )
 	{
-		$this->debug = $debug;
+		return $this
+			->setStringFn( new String\Byte( $charset ) );
+	}
+
+	public function setStringFnMultiByte( $charset )
+	{
+		return $this
+			->setStringFn( new String\MultiByte( $charset ) );
+	}
+
+	public function setDefaultStringFn()
+	{
+		return $this
+			->setStringFnMultiByte( 'UTF-8' );
+	}
+
+	public function setMeasure( MeasureText $ms )
+	{
+		$this->measure = $ms;
+		return $this;
+	}
+
+	public function setDefaultMeasure()
+	{
+		return $this
+			->setMeasure( new MeasureText() );
+	}
+
+	public function setPage( $page )
+	{
+		$this->page = $page;
 		return $this;
 	}
 
@@ -76,17 +108,21 @@ class Paragraph
 		return $this;
 	}
 
-	public function prepare( $text, $width, $charset = 'UTF-8' )
+	public function prepare( $text, $width )
 	{
+		$this->size = $this->page->getFontSize();
+
+		$this->measure->setFontFromPage( $this->page );
+		$this->breakChars->setStringFn( $this->strFn );
+
 		$lb = new LinesBreaker();
 
-		$lb->setFont( $this->font );
-		$lb->setSize( $this->size );
-		$lb->setWidth( $width );
-		$lb->setBreakChars( $this->breakChars );
-		$lb->setDebug( $this->debug );
-
-		$lb->breakText( $text, $charset );
+		$lb->setMeasure( $this->measure )
+			->setStringFn( $this->strFn )
+			->setWidth( $width )
+			->setBreakChars( $this->breakChars )
+			->setDebug( $this->debug )
+			->breakText( $text );
 
 		$this->linesBreaker = $lb;
 		$this->lineCount = $lb->getLineCount();
@@ -127,39 +163,34 @@ class Paragraph
 		return $this->height;
 	}
 
-	public function draw( $text, $x, $y, $width, $charset = 'UTF-8' )
+	public function draw( $text, $x, $y, $width )
 	{
 		return $this
-			->prepare( $text, $width, $charset )
-			->render( $x, $y, $charset );
+			->prepare( $text, $width )
+			->render( $x, $y );
 	}
 
-	public function testEncoding( $text, $charset )
-	{
-		$conv = iconv($charset, 'CP1252//IGNORE', $text);
-		echo $text, ' [', mb_strlen( $text, $charset ), ' / ', strlen( $conv ), "]<br/>\r\n";
-	}
-
-	public function render( $x, $y, $charset = 'UTF-8' )
+	public function render( $x, $y )
 	{
 		$page = $this->page;
-		$page->setFont( $this->font, $this->size );
+		$size = $this->size;
+
+		$charset = $this->strFn->charset;
 		$debugX = $x + $this->width + 4;
 
 		$lines = $this->getLines();
 		foreach ( $lines as $line ) {
-			//$this->testEncoding( $line->text, $charset );
 			$page->drawText( $line->text, $x, $y, $charset );
 			if ( $this->debug ) {
 				$page->drawText( $line->getDebugText(), $debugX, $y, $charset );
 			}
-			$y -= $this->size + $this->lineSpace;
+			$y -= $size + $this->lineSpace;
 		}
 		if ( $this->debug ) {
 			$page->drawText( $this->getLinesDebug(), $debugX, $y, $charset );
 			$page->setLineColor( $this->debugLineColor );
 			$x += $this->width + 2;
-			$y += $this->size;
+			$y += $size;
 			$page->drawLine( $x, $y + $this->getHeight(), $x, $y );
 		}
 		return $this;

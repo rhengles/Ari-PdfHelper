@@ -10,6 +10,14 @@ class LinesBreakChar
 	protected $breakChars = array(' ', '-');
 	protected $hasSpace = true;
 
+	protected $strFn;
+
+	public function setStringFn( String\IStringFn $strFn )
+	{
+		$this->strFn = $strFn;
+		return $this;
+	}
+
 	public function spaceInChars( $chars )
 	{
 		foreach( $chars as $c ) {
@@ -35,11 +43,11 @@ class LinesBreakChar
 		return $result;
 	}
 
-	public function findNearest( $text, $charset, $length )
+	public function findNearest( $text, $length )
 	{
 		$nearest = null;
 		foreach ( $this->breakChars as $c ) {
-			$pos = mb_strrpos( $text, $c, 0, $charset );
+			$pos = $this->strFn->rpos( $text, $c );
 			if ( $pos === false ) continue;
 			if ( empty( $nearest ) || $pos > $nearest['pos'] ) {
 				$nearest = array(
@@ -52,20 +60,20 @@ class LinesBreakChar
 		return $nearest;
 	}
 
-	public function breakLine( $text, $charset, $pos )
+	public function breakLine( $text, $pos )
 	{
-		if ( mb_strlen($text, $charset) <= $pos ) {
-			return $this->makeResult( $text, null, $pos, mb_strlen($text, $charset), true );
+		if ( $this->strFn->length( $text ) <= $pos ) {
+			return $this->makeResult( $text, null, $pos, $this->strFn->length( $text ), true );
 		}
-		if ( $this->hasSpace && mb_substr($text, $pos, 1, $charset) === ' ' ) {
-			return $this->makeResult( mb_substr($text, 0, $pos, $charset), ' ', $pos, $pos );
+		if ( $this->hasSpace && $this->strFn->substr( $text, $pos, 1 ) === ' ' ) {
+			return $this->makeResult( $this->strFn->substr( $text, 0, $pos ), ' ', $pos, $pos );
 		}
-		$text = mb_substr( $text, 0, $pos, $charset );
-		$nearest = $this->findNearest( $text, $charset, $pos );
+		$text = $this->strFn->substr( $text, 0, $pos );
+		$nearest = $this->findNearest( $text, $pos );
 		if ( empty( $nearest ) ) {
 			return $this->makeResult( $text, null, $pos, $pos );
 		} else {
-			$text = mb_substr( $text, 0, $nearest['pos'], $charset );
+			$text = $this->strFn->substr( $text, 0, $nearest['pos'] );
 			return $this->makeResult( $text, $nearest['char'], $pos, $nearest['pos'] );
 		}
 	}

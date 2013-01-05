@@ -20,10 +20,27 @@ class MeasureText
 		return $this;
 	}
 
+	public function getFont()
+	{
+		return $this->font;
+	}
+
 	public function setSize( $size )
 	{
 		$this->size = $size;
 		return $this;
+	}
+
+	public function getSize()
+	{
+		return $this->size;
+	}
+
+	public function setFontFromPage( $page )
+	{
+		return $this
+			->setFont( $page->getFont() )
+			->setSize( $page->getFontSize() );
 	}
 
 	public function width($str8)
@@ -33,7 +50,7 @@ class MeasureText
 
 		$font = $this->font;
 		$str = iconv('UTF-8', 'UTF-16BE', $str8);
-		if ( !strlen($str) ) {
+		if ( !strlen($str) && strlen($str8) ) {
 			print_r('Length 8: '.strlen($str8).', Length 16: '.strlen($str).' -- './*htmlspecialchars(*/$str8.'<br/>');
 		}
 		$chars    = array();

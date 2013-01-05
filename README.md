@@ -24,16 +24,32 @@ Sample Usage
 	$font = Font::fontWithName(Font::FONT_HELVETICA);
 	$gray = new GrayScale( 0.8 );
 
-	$para = new Paragraph( $page, $font,
-		8 /* font size */,
-		2 /* line spacing */ );
+	$page->setFont( $font, 8 );
+
+	$para = new Paragraph( $page, 2 /* line spacing */ );
+
 	$para->setDebug( true );
 	$para->setDebugLineColor( $gray );
 
-	$para->draw( $reallyLongText,
+	$para->draw( $reallyLongTextUnicode, // default encoding assumes UTF-8
 		20  /* x position */,
 		780 /* y position */,
 		240 /* paragraph width */ );
+
+	// You can customise the character encoding
+
+	$para->setStringFnByte( 'ISO-8859-1' );
+	$para->setStringFnMultiByte( 'UTF-16BE' );
+
+	// You can get the number of lines
+
+	$para->getLineCount();
+
+	// And the total height in points
+
+	$para->getHeight();
+
+	// ---
 
 	$pdf->pages[] = $page;
 
