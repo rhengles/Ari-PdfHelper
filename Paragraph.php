@@ -31,8 +31,8 @@ class Paragraph
 	public function setDefaults()
 	{
 		return $this
-			->setDefaultMeasure()
 			->setDefaultStringFn()
+			->setDefaultMeasure()
 			->setDefaultBreakChars();
 	}
 
@@ -40,18 +40,6 @@ class Paragraph
 	{
 		$this->debug = $debug;
 		return $this;
-	}
-
-	public function setBreakChars( LinesBreakChar $bc )
-	{
-		$this->breakChars = $bc;
-		return $this;
-	}
-
-	public function setDefaultBreakChars()
-	{
-		return $this
-			->setBreakChars( new LinesBreakChar() );
 	}
 
 	public function setStringFn( String\IStringFn $strFn )
@@ -90,6 +78,18 @@ class Paragraph
 			->setMeasure( new MeasureText() );
 	}
 
+	public function setBreakChars( LinesBreakChar $bc )
+	{
+		$this->breakChars = $bc;
+		return $this;
+	}
+
+	public function setDefaultBreakChars()
+	{
+		return $this
+			->setBreakChars( new LinesBreakChar() );
+	}
+
 	public function setPage( $page )
 	{
 		$this->page = $page;
@@ -112,7 +112,9 @@ class Paragraph
 	{
 		$this->size = $this->page->getFontSize();
 
-		$this->measure->setFontFromPage( $this->page );
+		$this->measure
+			->setCharset( $this->strFn->charset )
+			->setFontFromPage( $this->page );
 		$this->breakChars->setStringFn( $this->strFn );
 
 		$lb = new LinesBreaker();
